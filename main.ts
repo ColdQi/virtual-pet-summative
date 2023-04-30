@@ -1,6 +1,6 @@
 function birth () {
-    condition = 0
     health = 10
+    joy = 10
     basic.showLeds(`
         . . . . .
         . . . . .
@@ -41,25 +41,60 @@ function birth () {
         . . . . .
         `)
     music.playSoundEffect(music.builtinSoundEffect(soundExpression.hello), SoundExpressionPlayMode.UntilDone)
+    condition = 0
 }
-function exercise (speed: number) {
+function exercise (times: number) {
     basic.clearScreen()
+    game.resume()
     condition = 2
     exercise_creature = game.createSprite(0, 4)
-    for (let index = 0; index < 4; index++) {
+    for (let index = 0; index < times; index++) {
         enemy = game.createSprite(4, randint(0, 4))
         while (enemy.get(LedSpriteProperty.X) != 0 && !(enemy.isTouching(exercise_creature))) {
             basic.pause(1000)
             enemy.change(LedSpriteProperty.X, -1)
         }
         if (enemy.isTouching(exercise_creature)) {
-        	
+            joy += -1
         } else {
             joy += 1
             basic.pause(1000)
             enemy.change(LedSpriteProperty.X, -1)
         }
         enemy.delete()
+    }
+    exercise_creature.delete()
+    game.pause()
+    condition = 0
+}
+function showEmotion () {
+    if (joy >= 15) {
+        basic.showLeds(`
+            . . . . .
+            . # . # .
+            . . . . .
+            # . . . #
+            . # # # .
+            `)
+        music.playSoundEffect(music.builtinSoundEffect(soundExpression.happy), SoundExpressionPlayMode.UntilDone)
+    } else if (joy >= 5) {
+        basic.showLeds(`
+            . . . . .
+            . # . # .
+            . . . . .
+            . # # # .
+            . . . . .
+            `)
+        music.playSoundEffect(music.createSoundEffect(WaveShape.Square, 419, 600, 255, 103, 100, SoundExpressionEffect.Warble, InterpolationCurve.Linear), SoundExpressionPlayMode.UntilDone)
+    } else {
+        basic.showLeds(`
+            . . . . .
+            . # . # .
+            . . . . .
+            . # # # .
+            # . . . #
+            `)
+        music.playSoundEffect(music.builtinSoundEffect(soundExpression.sad), SoundExpressionPlayMode.UntilDone)
     }
 }
 function death () {
@@ -83,7 +118,7 @@ function death () {
 }
 input.onButtonPressed(Button.A, function () {
     if (condition == 0) {
-        exercise(1)
+        exercise(4)
     }
 })
 input.onButtonPressed(Button.AB, function () {
@@ -94,11 +129,16 @@ input.onButtonPressed(Button.AB, function () {
 input.onButtonPressed(Button.B, function () {
     health += -1
 })
-let joy = 0
+input.onGesture(Gesture.Shake, function () {
+    if (condition == 0) {
+        showEmotion()
+    }
+})
 let enemy: game.LedSprite = null
 let exercise_creature: game.LedSprite = null
-let health = 0
 let condition = 0
+let joy = 0
+let health = 0
 birth()
 basic.forever(function () {
     if (condition == 0) {
@@ -130,4 +170,19 @@ basic.forever(function () {
             basic.pause(100)
         }
     }
+})
+basic.forever(function () {
+    if (condition == 0) {
+        basic.showLeds(`
+            . . . . .
+            # # # # #
+            # . # . #
+            # # # # #
+            . . . . .
+            `)
+    }
+})
+basic.forever(function () {
+    health += -1
+    basic.pause(5000)
 })
