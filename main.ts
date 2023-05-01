@@ -1,4 +1,5 @@
 function birth () {
+    dice_number = 0
     health = 10
     joy = 10
     basic.showLeds(`
@@ -43,6 +44,22 @@ function birth () {
     music.playSoundEffect(music.builtinSoundEffect(soundExpression.hello), SoundExpressionPlayMode.UntilDone)
     condition = 0
 }
+radio.onReceivedNumber(function (receivedNumber) {
+    if (dice_number != 0) {
+        if (dice_number > receivedNumber) {
+            joy += 1
+            basic.showString("I win")
+        } else if (dice_number == receivedNumber) {
+            basic.showString("draw")
+        } else if (dice_number < receivedNumber) {
+            joy += -1
+            basic.showString("I lose")
+        }
+        dice_number = 0
+    } else {
+        opponent_number = receivedNumber
+    }
+})
 function exercise (times: number) {
     basic.clearScreen()
     game.resume()
@@ -121,13 +138,32 @@ input.onButtonPressed(Button.A, function () {
         exercise(4)
     }
 })
+function playGame () {
+    dice_number = randint(1, 6)
+    basic.showNumber(dice_number)
+    radio.sendNumber(dice_number)
+    if (opponent_number != 0) {
+        if (dice_number > opponent_number) {
+            joy += 1
+            basic.showString("I win")
+        } else if (dice_number == opponent_number) {
+            basic.showString("draw")
+        } else if (dice_number < opponent_number) {
+            joy += -1
+            basic.showString("I lose")
+        }
+        dice_number = 0
+    }
+}
 input.onButtonPressed(Button.AB, function () {
     if (condition == 1) {
         birth()
     }
 })
 input.onButtonPressed(Button.B, function () {
-    health += -1
+    if (condition == 0) {
+        playGame()
+    }
 })
 input.onGesture(Gesture.Shake, function () {
     if (condition == 0) {
@@ -136,9 +172,11 @@ input.onGesture(Gesture.Shake, function () {
 })
 let enemy: game.LedSprite = null
 let exercise_creature: game.LedSprite = null
+let opponent_number = 0
 let condition = 0
 let joy = 0
 let health = 0
+let dice_number = 0
 birth()
 basic.forever(function () {
     if (condition == 0) {
